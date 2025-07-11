@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Restaurant Assistent</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 2em; }
+    button { font-size: 1.5em; padding: 0.5em 1em; }
+    #output { margin-top: 2em; font-size: 1.2em; }
+  </style>
+</head>
+<body>
+  <h1>🧑‍🍳 Restaurant Assistent</h1>
+  <p>Druk op de knop en stel een vraag over het menu.</p>
+  <button id="start-btn">🎤 Vraag stellen</button>
+  <div id="output"></div>
+
+  <script>
+    const button = document.getElementById("start-btn");
+    const output = document.getElementById("output");
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'nl-NL';
+
+    button.onclick = () => {
+      output.innerHTML = "🎧 Luisteren...";
+      recognition.start();
+    };
+
+    recognition.onresult = async (event) => {
+      const transcript = event.results[0][0].transcript;
+      output.innerHTML = "Je vroeg: <b>" + transcript + "</b><br><i>Even nadenken...</i>";
+
+      const res = await fetch("https://JOUW-BACKEND-URL.onrender.com/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: transcript })
+      });
+
+      const data = await res.json();
+      output.innerHTML += "<br>Antwoord: <b>" + data.reply + "</b>";
+
+      const utterance = new SpeechSynthesisUtterance(data.reply);
+      utterance.lang = 'nl-NL';
+      speechSynthesis.speak(utterance);
+    };
+  </script>
+</body>
+</html>
